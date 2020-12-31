@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  postgresql:
+    image: postgres:13.1
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgresql:/var/lib/postgresql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_LISTEN_PORT=5050
+      - PGADMIN_DEFAULT_EMAIL=test@example.com
+      - PGADMIN_DEFAULT_PASSWORD=test
+    ports:
+      - "5050:5050"
+    depends_on:
+      - postgresql
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.backend
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    working_dir: "/app/"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgresql
+    container_name: europrono_back
+
+volumes:
+  postgresql:
